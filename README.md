@@ -1,1 +1,5 @@
 # JiMJiM Bot - RU Hacks 2021
+
+JiMJiM Bot implements a reputation system by awarding points to users who contribute helpful information. Users can earn points by asking questions, responding to questions, having upvoted comments, or having an Instructor (rank) endorse their comment. After earning a certain level of points, users are automatically promoted to the next rank. Upon promotion, users gain a new color in their nickname and have access to a variety of new name badges to use from $shop. There are five ranks for students: Newbie, Scholar, Enlightened, Transcended, and Literal Genius.
+
+Features Users can earn points by asking questions, responding to questions, upvoting comments, or having an Instructor (role) upvote their comment. Ranks for users based on points: Newbie, Scholar, Enlightened, Transcended, Literal Genius Emoji Shop Users can upload course information and set reminders for important deadlines and exam dates. Bot sends weekly reminders 10 minutes prior to class time.
