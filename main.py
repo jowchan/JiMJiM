@@ -35,6 +35,7 @@ async def on_ready():
     # await create_new_role("User", 0xc775c9)
     # await updateRank(guild.owner.id)
 
+
 # ------------ Bot Commands ------------------------------
 
 # create a new Server Role
@@ -58,6 +59,7 @@ async def create_role(ctx, rolename):
             color=0xFF0000)
         await ctx.send(embed=msg)
 
+
 # delete a Server Role
 @client.command()
 async def delete_role(ctx, rolename):
@@ -80,10 +82,10 @@ async def delete_role(ctx, rolename):
             color=0x67e0c4)
         await ctx.send(embed=msg)
 
+
 # add a Server Role for a single or multiple users
 @client.command()
 async def add_user_role(ctx, role, *usernames):
-
     for guild in client.guilds:
         if guild.name == GUILD:
             break
@@ -119,6 +121,39 @@ async def delete_user_role(ctx, role, *usernames):
             title=f'{user} has been stripped of the role: {role}',
             color=0x67e0c4)
         await ctx.send(embed=msg)
+
+# update role color (color input format: #85d4d1 or 0x85d4d1)
+@client.command()
+async def update_role_color(ctx, role, color):
+    for guild in client.guilds:
+        if guild.name == GUILD:
+            break
+
+    role_model = [r for r in guild.roles if r.name == role][0]
+    print("before edit role color: ", role_model.color)
+    readableHex = int(hex(int(color.replace("#", ""), 16)), 0)
+    await role_model.edit(colour=readableHex)
+    print("after edit role color: ", role_model.color)
+    msg = discord.Embed(
+        title=f'Role: {role} now has new color: {color}',
+        color=0x67e0c4)
+    await ctx.send(embed=msg)
+
+# update role name
+@client.command()
+async def update_role_name(ctx, oldrole, newrole):
+    for guild in client.guilds:
+        if guild.name == GUILD:
+            break
+
+    role_model = [r for r in guild.roles if r.name == oldrole][0]
+    print("before edit role name: ", role_model.name)
+    await role_model.edit(name=newrole)
+    print("after edit role name: ", role_model.name)
+    msg = discord.Embed(
+        title=f'Role: {oldrole} has a new name: {newrole}',
+        color=0x67e0c4)
+    await ctx.send(embed=msg)
 
 
 # ------------ Helper functions ------------------------------
@@ -167,6 +202,7 @@ async def create_rank_roles():
     await create_new_role("Experienced 💰", 0xFEB144)
     await create_new_role("Literal Genius 🧙", 0xFF6663)
     print("Rank Roles have been added to the Server")
+
 
 # Update the rank of member (not fully implemented)
 # async def updateRank(member_id):
@@ -223,4 +259,3 @@ client.run(TOKEN)
 #
 #     if message.content.startswith('!'):
 #         await message.channel.send("Command")
-
