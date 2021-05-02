@@ -4,6 +4,7 @@ import discord
 import os
 from discord.ext import commands, tasks
 import asyncio, datetime
+import json
 
 from discord import Member, Role
 
@@ -13,6 +14,7 @@ GUILD = os.getenv('GUILD')
 intents = discord.Intents.default()
 intents.members = True
 client = commands.Bot(command_prefix='$', intents=intents)
+amounts = {}
 
 
 # This is a GLOBAL variable for the syllabus command
@@ -24,6 +26,14 @@ client.lecture_starttime_dict = {}
 
 @client.event
 async def on_ready():
+
+    global amounts
+    try:
+        with open('amounts.json') as f:
+            amounts = json.load(f)
+    except FileNotFoundError:
+        print("Could not load amounts.json")
+        amounts = {}
 
     for guild in client.guilds:
         
@@ -38,10 +48,10 @@ async def on_ready():
     members = '\n - '.join([member.name for member in guild.members])
     print(f'Guild Members:\n - {members}')
 
-    await create_rank_roles()
-
 @client.event
 async def on_guild_join(guild):
+    await create_rank_roles()
+
     for channel in guild.text_channels:
         if channel.permissions_for(guild.me).send_messages:
             embed=discord.Embed(title="Thank you for using JiMJiM Bot!", description="JiMJiM bot will enhance your Discord learning experience by promoting communication between users in a classroom setting.", color=0xffc0cb )
@@ -67,7 +77,7 @@ async def info(ctx):
     embed.add_field(name="$course_schedule", value="Retrieves the course schedule, lecture times, and exam dates.", inline = False)
     embed.add_field(name = "Earning Points", value ="Users can earn points by asking questions, responding to questions, upvoting comments, or having an Instructor (role) upvote their comment. \
                                 There are four available reactions: \n Upvote <a:white_check_mark:838480444239380610> (+2 points) \n \
-                                   Downvote <a:x:838480444239380610> (-2 points)\n  Spam <a:triangular_flag_on_post: (-5 points)> \n Instructor Endorsed <a:star:838480444239380610> (+5 points)", inline= False)
+                                   Downvote <a:x:838480444239380610> (-2 points)\n  Spam :triangular_flag_on_post: (-5 points) \n Instructor Endorsed <a:star:838480444239380610> (+5 points)", inline= False)
     embed.add_field(name = "Ranks", value ="Students begin with Rank Newbie and progress up to Literal Genius. The ranks are as follows: \
                                 Newbie 👶 \n Scholar 📚 \n Enlightened 💡 \n Transcended 💰 \n Literal Genius 🧙‍♂️ \n \
                                    The Instructor 🎓 rank is assigned by the server owner and other Instructors themselves.", inline= False)
@@ -270,6 +280,16 @@ async def delete_user_role(ctx,role, *usernames):
 # on member join, assign Newbie role
 @client.event
 async def on_member_join(member):
+    id = str(member.id)
+    if id not in amounts:
+        amounts[id] = 0
+        await member.create_dm()
+        await member.dm_channel.send("You are now registered")
+        _save()
+    else:
+        await member.create_dm()
+        await member.dm_channel.send("You already have an account")
+
     for guild in client.guilds:
         if guild.name == GUILD:
             break
@@ -282,6 +302,158 @@ async def on_member_join(member):
 
     # Bot sends DM to member
     await member.send(embed=msg)
+
+@client.command()
+async def register(ctx):
+    id = str(ctx.message.author.id)
+    if id not in amounts:
+        amounts[id] = 100
+        await ctx.send("You are now registered")
+        _save()
+    else:
+        await ctx.send("You already have an account")
+
+@client.event
+async def on_reaction_add(reaction, member):
+    if reaction.message.author == member:
+        return
+
+    for guild in client.guilds:
+        if guild.name == GUILD:
+            break
+
+    id = str(reaction.message.author.id)
+    if reaction.emoji == '❌':
+        amounts[id] -= 2 
+        _save()
+    elif reaction.emoji == '✅':
+        amounts[id] += 2
+        _save()
+    elif reaction.emoji == '🟥':
+        amounts[id] -= 5
+        _save()
+    elif reaction.emoji == '⭐':
+        role_model = discord.utils.get(guild.roles, name= "Instructor")
+        if role_model not in member.roles:
+            return
+        amounts[id] += 5
+        _save()
+
+    if amounts[id] == 0:
+        role_model = discord.utils.get(guild.roles, name= "Newbie")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Newbie")
+        
+    elif amounts[id] > 0 and amounts[id] < 50:
+        role_model = discord.utils.get(guild.roles, name= "Newbie")
+        await reaction.message.author.remove_roles(role_model)
+
+        role_model = discord.utils.get(guild.roles, name= "Scholar")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Scholar")
+        
+    elif amounts[id] > 50 and amounts[id] < 100:
+        role_model = discord.utils.get(guild.roles, name= "Scholar")
+        await reaction.message.author.remove_roles(role_model)
+
+        role_model = discord.utils.get(guild.roles, name= "Enlightened")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Enlightened")
+        
+    elif amounts[id] > 100 and amounts[id] < 150:
+        role_model = discord.utils.get(guild.roles, name= "Enlightened")
+        await reaction.message.author.remove_roles(role_model)
+
+        role_model = discord.utils.get(guild.roles, name= "Transcended")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Transcended")
+        
+    elif amounts[id] > 150 and amounts[id] < 200:
+        role_model = discord.utils.get(guild.roles, name= "Transcended")
+        await reaction.message.author.remove_roles(role_model)
+
+        role_model = discord.utils.get(guild.roles, name= "Literal Genius")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Literal Genius")
+
+@client.event
+async def on_reaction_remove(reaction, member):
+    if reaction.message.author == member:
+        return
+
+    for guild in client.guilds:
+        if guild.name == GUILD:
+            break
+
+    id = str(reaction.message.author.id)
+    if reaction.emoji == '❌':
+        amounts[id] += 2 
+        _save()
+    elif reaction.emoji == '✅':
+        print("upvote")
+        amounts[id] -= 2
+        _save()
+    elif reaction.emoji == '🚩':
+        amounts[id] += 5
+        _save()
+    elif reaction.emoji == '⭐':
+        if member.roles != "Instructor":
+            return
+        amounts[id] -= 5
+        _save()
+
+    if amounts[id] == 0:
+        role_model = discord.utils.get(guild.roles, name= "Scholar")
+        await reaction.message.author.remove_roles(role_model)
+
+        role_model = discord.utils.get(guild.roles, name= "Newbie")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Newbie")
+        
+    elif amounts[id] > 0 and amounts[id] < 50:
+        role_model = discord.utils.get(guild.roles, name= "Enlightened")
+        await reaction.message.author.remove_roles(role_model)
+
+        role_model = discord.utils.get(guild.roles, name= "Scholar")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Scholar")
+        
+    elif amounts[id] > 50 and amounts[id] < 100:
+        role_model = discord.utils.get(guild.roles, name= "Transcended")
+        await reaction.message.author.remove_roles(role_model)
+
+        role_model = discord.utils.get(guild.roles, name= "Enlightened")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Enlightened")
+        
+    elif amounts[id] > 100 and amounts[id] < 150:
+        role_model = discord.utils.get(guild.roles, name= "Literal Genius")
+        await reaction.message.author.remove_roles(role_model)
+
+        role_model = discord.utils.get(guild.roles, name= "Transcended")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Transcended")
+        
+    elif amounts[id] > 150 and amounts[id] < 200:
+        role_model = discord.utils.get(guild.roles, name= "Literal Genius")
+        await reaction.message.author.add_roles(role_model)
+        await reaction.message.author.edit(nick=reaction.message.author.name + " | Literal Genius")
+
+@client.command()
+async def points(ctx):
+    if ctx.author == client.user:
+        return
+
+    id = str(ctx.author.id)
+    if id in amounts:  
+        msg = discord.Embed(title="Reputation Points", color=0xffc0cb)
+        msg.add_field(name="Points:", value="You have {} reputation points".format(amounts[id]), inline=False)
+
+        # Bot sends DM to member
+        await ctx.author.send(embed=msg)
+    else:
+        await ctx.author.create_dm()
+        await ctx.author.dm_channel.send("You do not have an account")
 
 
 # ------------ Helper functions ------------------------------
@@ -377,5 +549,12 @@ async def lectureNotifications(ctx):
 
         await asyncio.sleep(60*3)
 
-    
+def _save():
+    with open('amounts.json', 'w+') as f:
+        json.dump(amounts, f)
+
+@client.event
+async def save():
+    _save()
+
 client.run(TOKEN)
