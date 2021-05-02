@@ -75,6 +75,7 @@ async def info(ctx):
     embed.add_field(name ="$delete_user_role", value="Removes the current role of the user. Only the server owner or another Instructor can use this command. The syntax is: $delete_user_role [ROLE] [USERNAME]", inline=False)
     embed.add_field(name ="$course_dates", value ="Retrieves the course start and end dates.", inline=False)
     embed.add_field(name="$course_schedule", value="Retrieves the course schedule, lecture times, and exam dates.", inline = False)
+    embed.add_field(name ="$shop", value ="Access the shop of emojis available to users who reach a certain rank.", inline=False)
     embed.add_field(name = "Earning Points", value ="Users can earn points by asking questions, responding to questions, upvoting comments, or having an Instructor (role) upvote their comment. \
                                 There are four available reactions: \n Upvote <a:white_check_mark:838480444239380610> (+2 points) \n \
                                    Downvote <a:x:838480444239380610> (-2 points)\n  Spam :triangular_flag_on_post: (-5 points) \n Instructor Endorsed <a:star:838480444239380610> (+5 points)", inline= False)
@@ -556,5 +557,29 @@ def _save():
 @client.event
 async def save():
     _save()
+
+@client.command()
+async def shop(ctx):
+    embed= discord.Embed(
+        title="Shop",
+        value="Decorate your name with emojis! Only emoji associated to your rank can be added.",
+        color= 0xffc0cb)
+    embed.add_field(
+        name="Scholar Emoji :books:",
+        value="Choose from the following list of emojis: :deer: :ox: :pretzel: :taco: :golf:", 
+        inline = False)
+    embed.add_field(
+        name="Enlightened Emoji :bulb:",
+        value="Choose from the following list of emojis: :monkey_face: :zebra: :chestnut: :salad: :fishing_pole_and_fish:",
+        inline = False)
+    embed.add_field(
+        name="Transcended Emoji :moneybag:",
+        value="Choose from the following list of emojis: :whale2: :sauropod: :sushi: :coconut: :chess_pawn:", 
+        inline = False)
+    embed.add_field(
+        name="Literal Genius Emoji :man_mage:", 
+        value="Choose from the following list of emojis: :unicorn: :dragon_face: :bento: :hot_pepper: :8ball:", 
+        inline = False)
+    await ctx.send(embed=embed)
 
 client.run(TOKEN)
