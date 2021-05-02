@@ -39,30 +39,46 @@ async def on_ready():
 
 # create a new Server Role
 @client.command()
-async def create_role(ctx, name):
+async def create_role(ctx, rolename):
     for guild in client.guilds:
         if guild.name == GUILD:
             break
-    await guild.create_role(name=name, mentionable=True, hoist=True)
-    msg = discord.Embed(
-        title=f'Role: {name} has been created',
-        color=0x67e0c4)
-    await ctx.send(embed=msg)
 
+    existing_roles = [r for r in guild.roles if r.name == rolename]
+
+    if len(existing_roles) == 0:
+        await guild.create_role(name=rolename, mentionable=True, hoist=True)
+        msg = discord.Embed(
+            title=f'Role: {rolename} has been created',
+            color=0x67e0c4)
+        await ctx.send(embed=msg)
+    else:
+        msg = discord.Embed(
+            title=f'Role: {rolename} already exists, please chose a different role!',
+            color=0xFF0000)
+        await ctx.send(embed=msg)
 
 # delete a Server Role
 @client.command()
-async def delete_role(ctx, name):
+async def delete_role(ctx, rolename):
     for guild in client.guilds:
         if guild.name == GUILD:
             break
-    role = discord.utils.get(guild.roles, name=name)
-    await Role.delete(role)
-    msg = discord.Embed(
-        title=f'Role: {name} has been deleted',
-        color=0x67e0c4)
-    await ctx.send(embed=msg)
 
+    existing_roles = [r for r in guild.roles if r.name == rolename]
+
+    if len(existing_roles) == 0:
+        msg = discord.Embed(
+            title=f'Role: {rolename} does not exist!',
+            color=0xFF0000)
+        await ctx.send(embed=msg)
+    else:
+        role = discord.utils.get(guild.roles, name=rolename)
+        await Role.delete(role)
+        msg = discord.Embed(
+            title=f'Role: {rolename} has been deleted',
+            color=0x67e0c4)
+        await ctx.send(embed=msg)
 
 # add a Server Role for a single or multiple users
 @client.command()
