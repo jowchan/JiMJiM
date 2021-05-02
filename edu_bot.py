@@ -37,9 +37,6 @@ async def on_ready():
     members = '\n - '.join([member.name for member in guild.members])
     print(f'Guild Members:\n - {members}')
 
-    # await format_lecture_times()
-    # await lectureNotifications.start()
-
     # await create_rank_roles()
 
 
@@ -71,8 +68,9 @@ async def setup(ctx):
     embed.add_field(name="1: Assign Instructor Role ",
                     value="Instructors have the ability to endorse student comments, giving extra points to that student. To assign an Instructor role to a member, type the command $instructor",
                     inline=False)
-    embed.add_field(name="2: Skip Setup ", value="To skip the setup process, press 2.", inline=False)
-    embed.add_field(name="3: Add Course Dates and Lecture Times ", value="To add lecture times, press 3.", inline=False)
+    embed.add_field(name="2: Add Course Dates and Lecture Times ", value="To add lecture times, press 3.", inline=False)
+    embed.add_field(name="3: Skip Setup ", value="To skip the setup process, press 2.", inline=False)
+
 
     await ctx.send(embed=embed)
 
@@ -101,15 +99,15 @@ async def setup(ctx):
     if msg.content == "0":
         embed1 = discord.Embed(
             title="<a:pencil:838150754912436288> Please enter the link to your course information here:",
-            color=discord.Color.purple())
+            color=0xffc0cb)
         await ctx.send(embed=embed1)
         client.course_information = await client.wait_for("message", check=check)
 
-    elif msg.content == "3":
+    elif msg.content == "2":
 
         embed3 = discord.Embed(
             title="<a:woman_teacher:838129346089582662> Please enter course START DATE (format: mm/dd/yyyy)",
-            color=discord.Color.purple())
+            color=0xffc0cb)
         await ctx.send(embed=embed3)
         msg_start = await client.wait_for("message", check=check)
         client.startdate = msg_start.content
@@ -117,7 +115,7 @@ async def setup(ctx):
 
         embed3 = discord.Embed(
             title="<a:woman_teacher:838129346089582662> Please enter course END DATE (format: mm/dd/yyyy)",
-            color=discord.Color.purple())
+            color=0xffc0cb)
         await ctx.send(embed=embed3)
         msg_end = await client.wait_for("message", check=check)
         client.enddate = msg_end.content
@@ -125,7 +123,7 @@ async def setup(ctx):
 
         embed3 = discord.Embed(
             title="<a:woman_teacher:838129346089582662> Please enter LECTURE TIMES based on the following criteria---------:",
-            color=discord.Color.purple())
+            color=0xffc0cb)
         embed3.add_field(
             name="DayOfWeek StartTime - EndTime",
             value="M/T/W/Th/F/Sat/Sun HH:MM - HH:MM",
@@ -141,7 +139,7 @@ async def setup(ctx):
 
         embed3 = discord.Embed(
             title="<a:woman_teacher:838129346089582662> Lecture reminders will be sent prior to every lecture. ",
-            color=discord.Color.purple())
+            color=0xffc0cb)
         await ctx.send(embed=embed3)
         # parse through user inputted lecture times and start the background task
         await format_lecture_times(ctx)
@@ -168,7 +166,7 @@ async def course_info(ctx):
         await ctx.send("No course information times has been provided.")
     else:
         embed = discord.Embed(title="Course Information", url=client.course_information.content,
-                              color=discord.Color.purple())
+                              color=0xffc0cb)
         await ctx.send(embed=embed)
 
 @client.command()
@@ -179,7 +177,7 @@ async def course_dates(ctx):
         embed = discord.Embed(
             title="Course Dates",
             description=f"Start Date: {client.startdate} ~ End Date: {client.enddate}",
-            color=discord.Color.purple())
+            color=0xffc0cb)
         await ctx.send(embed=embed)
 
 @client.command()
@@ -191,7 +189,7 @@ async def course_schedule(ctx):
         embed = discord.Embed(
             title="Course Lecture Times",
             description="",
-            color=discord.Color.purple())
+            color=0xffc0cb)
 
         for lecture_time in lecture_array:
             embed.add_field(
@@ -223,7 +221,7 @@ async def create_role(ctx, name):
     await guild.create_role(name=name, mentionable=True, hoist=True)
     msg = discord.Embed(
         title=f'Role: {name} has been created',
-        color=0x67e0c4)
+        color=0xffc0cb)
     await ctx.send(embed=msg)
 
 
@@ -237,7 +235,7 @@ async def delete_role(ctx, name):
     await Role.delete(role)
     msg = discord.Embed(
         title=f'Role: {name} has been deleted',
-        color=0x67e0c4)
+        color=0xffc0cb)
     await ctx.send(embed=msg)
 
 
@@ -263,7 +261,7 @@ async def add_Instructor(ctx, *usernames):
         await member.add_roles(role_model)
         msg = discord.Embed(
             title=f'{user} has been assigned the role: Instructor',
-            color=0x67e0c4)
+            color=0xffc0cb)
         await ctx.send(embed=msg)
 
 
@@ -288,7 +286,7 @@ async def delete_user_role(ctx, role, *usernames):
         await member.remove_roles(role_model)
         msg = discord.Embed(
             title=f'{user} has been stripped of the role: {role}',
-            color=0x67e0c4)
+            color=0xffc0cb)
         await ctx.send(embed=msg)
 
 
@@ -303,7 +301,7 @@ async def on_member_join(member):
     msg = discord.Embed(
         title=f'Welcome {member.name} to server {guild}! \
         You have been assigned the role: Newbie. To level up in rank, participate constructively in course Q&A to \
-        earn points.', color=0x67e0c4)
+        earn points.', color=0xffc0cb)
 
     # Bot sends DM to member
     await member.send(embed=msg)
@@ -366,8 +364,6 @@ async def format_lecture_times(ctx):
 @tasks.loop()
 async def lectureNotifications(ctx):
 
-    channel = client.get_channel(837965366767779854)
-
     current_day = datetime.date.today().weekday()
     current_hour = datetime.datetime.now().hour
     current_minute = datetime.datetime.now().minute
@@ -396,7 +392,7 @@ async def lectureNotifications(ctx):
                 and (abs(notification_minute - current_minute) <= 10):
             reminder = discord.Embed(
                 title=f'<a:woman_teacher:838129346089582662> Lecture TODAY @ {client.lecture_starttime_dict[current_day]}',
-                color=discord.Color.blue())
+                color=0xffc0cb)
             await ctx.send(embed=reminder)
 
         await asyncio.sleep(60*3)
