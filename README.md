@@ -1,1 +1,1 @@
-# RU Hacks 2021 - Team JMJM
+# JiMJiM Bot - RU Hacks 2021
